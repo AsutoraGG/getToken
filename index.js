@@ -1,6 +1,7 @@
 /* Made by @AsutoraGG */
 const { listen } = require('push-receiver');
-const { existsSync, writeFile } = require('fs');
+const { existsSync } = require('fs');
+const { writeFile } = require('fs/promises')
 
 const settings = require('./settings.json');
 const config = require('./rustplus.config.json');
@@ -15,8 +16,8 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
         var date = {
             "IP": body.ip,
             "PORT": body.port,
-            "ID": body.id,
-            "TOKEN": body.token
+            "ID": body.playerId,
+            "TOKEN": body.playerToken
         }
 
         if(settings.Loadall === true) {
