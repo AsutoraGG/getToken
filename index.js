@@ -13,28 +13,43 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
     listen(config.fcm_credentials, ({ notification, persistentId }) => {
         const body = JSON.parse(notification.data.body);
 
-        var date = { // Save Data
+        var date = {
             "IP": body.ip,
             "PORT": body.port,
             "ID": body.playerId,
             "TOKEN": body.playerToken
         }
 
-        if(settings.Loadall === true) { // ALL Message
-            writeFile('./config.json', JSON.stringify(date, null, 2)); // Save Json
+        var chatappDate = {
+            "IP": body.ip,
+            "PORT": body.port,
+            "ID": body.playerId,
+            "TOKEN": body.playerToken,
+            "Ingame": {
+                "command": true,
+                "prefix": ";"
+            }
+        }
+
+        if(settings.Loadall === true) {
+            if (settings.chatAppConfig === true) {
+                writeFile('./config.json', JSON.stringify(chatappDate, null, 2));
+            } else return writeFile('./config.json', JSON.stringify(date, null, 2));
             console.log(`IP : "${body.ip}" \nPort : "${body.port}" \nSteamID : "${body.playerId}" \nPlayerToken : "${body.playerToken}"`);
             console.log(`ServerName : "${body.name}" \n ServerDescription: "${body.desc}"`);
             if(settings.dev === true) return console.log(`Type: ${body.type}`);
             console.log('[INFO] : Saved config.json');
         }
-        else { // IP,PORT,ID,TOKEN Only(type)
-            writeFile('./config.json', JSON.stringify(date, null, 2)); // JSONで保存
+        else {
+            if (settings.chatAppConfig === true) {
+                writeFile('./config.json', JSON.stringify(chatappDate, null, 2));
+            } else return writeFile('./config.json', JSON.stringify(date, null, 2));
             console.log(`IP : "${body.ip}" \nPort : "${body.port}" \nSteamID : "${body.playerId}" \nPlayerToken : "${body.playerToken}"`);
             if(settings.dev === true) return console.log(`Type: ${body.type}`);
             console.log('[INFO] : Saved config.json');
         }
     });
-} else { // if not found rustplus.config.json
+} else {
     console.log('[Error] : rustplus.config.json is Not found!');
     console.log('[Error] : Run "npx @liamcottle/rustplus.js fcm-register" ');
     process.exit(0);
