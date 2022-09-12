@@ -1,26 +1,18 @@
 /* Made by @AsutoraGG */
 const { listen } = require('push-receiver');
 const { existsSync } = require('fs');
-const { writeFile } = require('fs/promises')
+const { writeFile } = require('fs/promises');
 
-const settings = require('./settings.json');
 const config = require('./rustplus.config.json');
 
 if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確認。なかったらelse */
     console.clear();
     console.log("[INFO] : found rustplus.config.json!");
 
-    listen(config.fcm_credentials, ({ notification, persistentId }) => {
+    listen(config.fcm_credentials, async ({ notification, persistentId }) => {
         const body = JSON.parse(notification.data.body);
 
-        var date = {
-            "IP": body.ip,
-            "PORT": body.port,
-            "ID": body.playerId,
-            "TOKEN": body.playerToken
-        }
-
-        var chatappDate = {
+        const saveDate = {
             "IP": body.ip,
             "PORT": body.port,
             "ID": body.playerId,
@@ -31,22 +23,33 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
             }
         }
 
-        if(settings.Loadall === true) {
-            if (settings.chatAppConfig === true) {
-                writeFile('./config.json', JSON.stringify(chatappDate, null, 2));
-            } else return writeFile('./config.json', JSON.stringify(date, null, 2));
-            console.log(`IP : "${body.ip}" \nPort : "${body.port}" \nSteamID : "${body.playerId}" \nPlayerToken : "${body.playerToken}"`);
-            console.log(`ServerName : "${body.name}" \n ServerDescription: "${body.desc}"`);
-            if(settings.dev === true) return console.log(`Type: ${body.type}`);
-            console.log('[INFO] : Saved config.json');
-        }
-        else {
-            if (settings.chatAppConfig === true) {
-                writeFile('./config.json', JSON.stringify(chatappDate, null, 2));
-            } else return writeFile('./config.json', JSON.stringify(date, null, 2));
-            console.log(`IP : "${body.ip}" \nPort : "${body.port}" \nSteamID : "${body.playerId}" \nPlayerToken : "${body.playerToken}"`);
-            if(settings.dev === true) return console.log(`Type: ${body.type}`);
-            console.log('[INFO] : Saved config.json');
+        if(body.type) {
+            if(body.type === 'entity') {
+                if(body.entityName === 'Switch') {
+                    console.log('\n--Smart Switch--')
+                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
+                    console.log('Entity ID : ' + body.entityId);
+                    console.log('Entity Type : ' + body.entityType + '\n');
+                } else if(body.entityName === 'Smart Alarm') {
+                    console.log('\n--Smart Alarm--')
+                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
+                    console.log('Entity ID : ' + body.entityId);
+                    console.log('Entity Type : ' + body.entityType);
+                    console.log('Title : ' + notification.data.title);
+                    console.log('Message : ' + notification.data.message + '\n');
+                } else if(body.entityName === 'Storage Monitor') {
+                    console.log('\n--Storage Monitor--')
+                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
+                    console.log('Entity ID : ' + body.entityId);
+                    console.log('Entity Type : ' + body.entityType + '\n');
+                }
+            }
+        } else {
+            console.log('\n--Player Token--');
+            console.log('Player Token : ' + body.playerToken);
+            console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
+
+            writeFile('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
         }
     });
 } else {
