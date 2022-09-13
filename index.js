@@ -9,9 +9,9 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
     console.clear();
     console.log("[INFO] : found rustplus.config.json!");
 
-    listen(config.fcm_credentials, async ({ notification, persistentId }) => {
+    listen(config.fcm_credentials, ({ notification, persistentId }) => {
         const body = JSON.parse(notification.data.body);
-
+        
         const saveDate = {
             "IP": body.ip,
             "PORT": body.port,
@@ -35,22 +35,25 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
                     console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
                     console.log('Entity ID : ' + body.entityId);
                     console.log('Entity Type : ' + body.entityType);
-                    console.log('Title : ' + notification.data.title);
-                    console.log('Message : ' + notification.data.message + '\n');
                 } else if(body.entityName === 'Storage Monitor') {
                     console.log('\n--Storage Monitor--')
                     console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
                     console.log('Entity ID : ' + body.entityId);
                     console.log('Entity Type : ' + body.entityType + '\n');
-                }
+                } /*else if(!body.entityName) {  //スマートアラームに電力が行った時にこれが出るはずなんだけどまだ勉強中なのでこれはまだ使えません
+                    console.log('\n---Alarm!---');
+                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
+                    console.log('Title : ' + notification.data.title); //スマートアラームのタイトル
+                    console.log('Message : ' + notification.data.message + '\n'); //スマートアラームのメッセージ
+                } */
+            } else if(body.type === 'server') {
+                console.log('\n--Server Pairing--');
+                console.log('Player Token : ' + body.playerToken);
+                console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
+                writeFile('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
             }
-        } else {
-            console.log('\n--Player Token--');
-            console.log('Player Token : ' + body.playerToken);
-            console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
-
-            writeFile('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
         }
+
     });
 } else {
     console.log('[Error] : rustplus.config.json is Not found!');
