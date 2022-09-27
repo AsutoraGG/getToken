@@ -1,17 +1,30 @@
 /* Made by @AsutoraGG */
 const { listen } = require('push-receiver');
-const { existsSync } = require('fs');
-const { writeFile } = require('fs/promises');
-
-const config = require('./rustplus.config.json');
+const { writeFileSync, existsSync, readFileSync } = require('fs');
 
 console.clear();
 
-if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確認。なかったらelse */
-    console.log("[INFO] : found rustplus.config.json!");
+if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか確認。なかったらelse
+    if(!existsSync('./database.json')) {
+        writeFileSync('./database.json', '[]');
+    }
 
-    listen(config.fcm_credentials, ({ notification, persistentId }) => {
-        const body = JSON.parse(notification.data.body);
+    console.log('[INFO] : Found rustplus.config.json!')
+    let databasePATH = './database.json';
+
+    function readJson(path, pars) {
+        const r = readFileSync(path, 'utf-8');
+        if (pars === true) return JSON.parse(r)
+        else if (pars === false) return JSON.stringify(r);
+        else return JSON.parse(r)
+    }
+
+    function onNotification({ notification, persistentId }) {
+        const i = JSON.stringify(persistentId);
+        const id = i.replace(/"/g, '');
+        const database = readJson(databasePATH, true);
+
+        database.push(id);
 
         const saveDate = {
             "IP": body.ip,
@@ -24,38 +37,30 @@ if(existsSync('rustplus.config.json')) { /* rustplus.config.jsonがあるか確�
             }
         }
 
-        if(body.type) {
-            if(body.type === 'entity') {
-                if(body.entityName === 'Switch') {
-                    console.log('\n--Smart Switch--')
-                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
-                    console.log('Entity ID : ' + body.entityId);
-                    console.log('Entity Type : ' + body.entityType + '\n');
-                } else if(body.entityName === 'Smart Alarm') {
-                    console.log('\n--Smart Alarm--')
-                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
-                    console.log('Entity ID : ' + body.entityId);
-                    console.log('Entity Type : ' + body.entityType);
-                } else if(body.entityName === 'Storage Monitor') {
-                    console.log('\n--Storage Monitor--')
-                    console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
-                    console.log('Entity ID : ' + body.entityId);
-                    console.log('Entity Type : ' + body.entityType + '\n');
-                }
-            } else if(body.type === 'server') {
+        var newDate = JSON.stringify(database);
+        writeFileSync(databasePATH, newDate, 'utf-8')
+
+        const data = notification.data;
+        const body = JSON.parse(data.body);
+
+        if (data.channelId === 'pairing') {
+            if (body.type === 'server') {
                 console.log('\n--Server Pairing--');
                 console.log('Player Token : ' + body.playerToken);
                 console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
-                writeFile('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
-            } else if(body.type === 'alarm') { //スマートアラームをペアリングしないとこれは機能しない
-                console.log('\n---Alarm!---');
-                console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')');
-                console.log('Title : ' + notification.data.title); //スマートアラームのタイトル
-                console.log('Message : ' + notification.data.message + '\n'); //スマートアラームのメッセージ
+                writeFileSync('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
             }
         }
+    }
 
-    });
+    async function startListning() {
+        const credentials = readJson('./rustplus.config.json').fcm_credentials;
+        let persistentIds = readJson(databasePATH, true);
+
+        await listen({ ...credentials, persistentIds }, onNotification);
+    }
+
+    startListning();
 } else {
     console.log('[Error] : rustplus.config.json is Not found!');
     console.log('[Error] : Run "npx @liamcottle/rustplus.js fcm-register" ');
