@@ -34,7 +34,8 @@ if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか�
             "Ingame": {
                 "command": true,
                 "prefix": ";"
-            }
+            },
+            "fix": false
         }
 
         var newDate = JSON.stringify(database);
