@@ -4,7 +4,7 @@ const { writeFileSync, existsSync, readFileSync } = require('fs');
 
 console.clear();
 
-if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか確認。なかったらelse
+if (existsSync('rustplus.config.json')) {  // check rustplus.config.json
     if(!existsSync('./database.json')) {
         writeFileSync('./database.json', '[]');
     }
@@ -26,6 +26,12 @@ if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか�
 
         database.push(id);
 
+        var newDate = JSON.stringify(database);
+        writeFileSync(databasePATH, newDate, 'utf-8')
+
+        const data = notification.data;
+        const body = JSON.parse(data.body);
+
         const saveDate = {
             "IP": body.ip,
             "PORT": body.port,
@@ -35,14 +41,12 @@ if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか�
                 "command": true,
                 "prefix": ";"
             },
+            "Discord": {
+                "Token": "",
+                "ChannelID": ""
+            },
             "fix": false
         }
-
-        var newDate = JSON.stringify(database);
-        writeFileSync(databasePATH, newDate, 'utf-8')
-
-        const data = notification.data;
-        const body = JSON.parse(data.body);
 
         if (data.channelId === 'pairing') {
             if (body.type === 'server') {
@@ -51,6 +55,8 @@ if (existsSync('rustplus.config.json')) {  // rustplus.config.jsonがあるか�
                 console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
                 writeFileSync('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
             }
+        } else {
+            console.log(data);
         }
     }
 
