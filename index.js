@@ -38,15 +38,15 @@ if (existsSync('rustplus.config.json')) {  // check rustplus.config.json
             "ID": body.playerId,
             "TOKEN": body.playerToken,
             "Ingame": {
-                "command": true,
-                "prefix": ";"
+              "command": true,
+              "prefix": ";"
             },
             "Discord": {
-                "Token": "",
-                "ChannelID": ""
+              "Token": "",
+              "ChannelID": ""
             },
             "fix": false
-        }
+          }
 
         if (data.channelId === 'pairing') {
             if (body.type === 'server') {
@@ -54,6 +54,8 @@ if (existsSync('rustplus.config.json')) {  // check rustplus.config.json
                 console.log('Player Token : ' + body.playerToken);
                 console.log('Server : ' + body.ip + ':' + body.port + ' (' + body.name + ')\n');
                 writeFileSync('./config.json', JSON.stringify(saveDate, null, 2)); // Save config data
+            } else {
+                console.log(data)
             }
         } else {
             console.log(data);
